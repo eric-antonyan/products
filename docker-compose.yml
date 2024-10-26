@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  springboot-app:
+    build:
+      context: products-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ambulance
+      POSTGRES_DB: eagledev
+    ports:
+      - "5431:5432"
+    networks:
+      - app-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin_password
+    ports:
+      - "8081:80"
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./products-service/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - springboot-app
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
